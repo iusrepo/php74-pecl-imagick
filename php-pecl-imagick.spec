@@ -3,12 +3,16 @@
 %{!?php_extdir:	%{expand:	%%global php_extdir	%(php-config --extension-dir)}}
 
 %global peclName  imagick
-%global prever    RC2
+%if "%{php_version}" < "5.6"
+%global ini_name  %{peclName}.ini
+%else
+%global ini_name  40-%{peclName}.ini
+%endif
 
 Summary:		Provides a wrapper to the ImageMagick library
 Name:		php-pecl-%peclName
-Version:		3.1.0
-Release:		0.9.%{prever}%{?dist}
+Version:		3.1.2
+Release:		1%{?dist}
 License:		PHP
 Group:		Development/Libraries
 Source0:		http://pecl.php.net/get/%peclName-%{version}%{?prever}.tgz
@@ -29,9 +33,6 @@ Provides:		php-pecl(%peclName) = %{version}
 
 Conflicts:	php-pecl-gmagick
 
-# http://svn.php.net/viewvc?view=revision&revision=329769
-Patch0:		imagick-3.1.0RC1-IM-so6.patch
-
 # RPM 4.8
 %{?filter_provides_in: %filter_provides_in %{php_extdir}/.*\.so$}
 %{?filter_setup}
@@ -50,7 +51,7 @@ IMPORTANT: Version 2.x API is not compatible with earlier versions.
 %setup -qc
 
 cd %peclName-%{version}%{?prever}
-%patch0 -p3 -b .im-so6
+
 
 %build
 cd %peclName-%{version}%{?prever}
@@ -70,7 +71,7 @@ cd %peclName-%{version}%{?prever}
 install -m 0755 -d %{buildroot}%{pecl_xmldir}
 install -m 0664 ../package.xml %{buildroot}%{pecl_xmldir}/%peclName.xml
 install -d %{buildroot}%{_sysconfdir}/php.d/
-install -m 0664 %{SOURCE1} %{buildroot}%{_sysconfdir}/php.d/%peclName.ini
+install -m 0664 %{SOURCE1} %{buildroot}%{_sysconfdir}/php.d/%{ini_name}
 
 rm -rf %{buildroot}/%{_includedir}/php/ext/%peclName/
 
@@ -102,9 +103,14 @@ fi
 %doc %peclName-%{version}%{?prever}/examples %peclName-%{version}%{?prever}/{CREDITS,TODO,INSTALL}
 %{php_extdir}/%peclName.so
 %{pecl_xmldir}/%peclName.xml
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/php.d/%peclName.ini
+%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/php.d/%{ini_name}
 
 %changelog
+* Thu Jun 19 2014 Remi Collet <rcollet@redhat.com> - 3.1.2-1
+- update to 1.1.7RC2
+- rebuild for https://fedoraproject.org/wiki/Changes/Php56
+- add numerical prefix to extension configuration file
+
 * Sat Jun 07 2014 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 3.1.0-0.9.RC2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_21_Mass_Rebuild
 
