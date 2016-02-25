@@ -12,7 +12,7 @@
 Summary:		Provides a wrapper to the ImageMagick library
 Name:		php-pecl-%peclName
 Version:		3.1.2
-Release:		4%{?dist}
+Release:		5%{?dist}
 License:		PHP
 Group:		Development/Libraries
 Source0:		http://pecl.php.net/get/%peclName-%{version}%{?prever}.tgz
@@ -21,8 +21,10 @@ BuildRoot:	%{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
 URL:			http://pecl.php.net/package/%peclName
 BuildRequires:	php-pear >= 1.4.7
 BuildRequires: php-devel >= 5.1.3, ImageMagick-devel >= 6.2.4
+%if 0%{?fedora} < 24
 Requires(post):	%{__pecl}
 Requires(postun):	%{__pecl}
+%endif
 %if 0%{?php_zend_api:1}
 Requires:		php(zend-abi) = %{php_zend_api}
 Requires:		php(api) = %{php_core_api}
@@ -86,6 +88,7 @@ php --no-php-ini \
 %clean
 rm -rf %{buildroot}
 
+%if 0%{?fedora} < 24
 %post
 %if 0%{?pecl_install:1}
 %{pecl_install} %{pecl_xmldir}/%peclName.xml
@@ -97,6 +100,7 @@ if [ "$1" -eq "0" ]; then
 	%{pecl_uninstall} %peclName
 fi
 %endif
+%endif
 
 %files
 %defattr(-,root,root,-)
@@ -106,6 +110,9 @@ fi
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/php.d/%{ini_name}
 
 %changelog
+* Thu Feb 25 2016 Remi Collet <remi@fedoraproject.org> - 3.1.2-5
+- drop scriptlets (replaced by file triggers in php-pear) #1310546
+
 * Thu Feb 04 2016 Fedora Release Engineering <releng@fedoraproject.org> - 3.1.2-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_24_Mass_Rebuild
 
