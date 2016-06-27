@@ -8,11 +8,12 @@
 %else
 %global ini_name  40-%{peclName}.ini
 %endif
+%global prever    RC1
 
 Summary:		Provides a wrapper to the ImageMagick library
 Name:		php-pecl-%peclName
-Version:		3.1.2
-Release:		5%{?dist}
+Version:		3.4.3
+Release:		0.1.%{prever}%{?dist}
 License:		PHP
 Group:		Development/Libraries
 Source0:		http://pecl.php.net/get/%peclName-%{version}%{?prever}.tgz
@@ -34,12 +35,6 @@ Requires:		php-api = %{php_apiver}
 Provides:		php-pecl(%peclName) = %{version}
 
 Conflicts:	php-pecl-gmagick
-
-# RPM 4.8
-%{?filter_provides_in: %filter_provides_in %{php_extdir}/.*\.so$}
-%{?filter_setup}
-# RPM 4.9
-%global __provides_exclude_from %{?__provides_exclude_from:%__provides_exclude_from|}%{php_extdir}/.*\\.so$
 
 
 %description
@@ -104,12 +99,16 @@ fi
 
 %files
 %defattr(-,root,root,-)
-%doc %peclName-%{version}%{?prever}/examples %peclName-%{version}%{?prever}/{CREDITS,TODO,INSTALL}
+%doc %peclName-%{version}%{?prever}/examples %peclName-%{version}%{?prever}/CREDITS
 %{php_extdir}/%peclName.so
 %{pecl_xmldir}/%peclName.xml
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/php.d/%{ini_name}
 
 %changelog
+* Mon Jun 27 2016 Remi Collet <remi@fedoraproject.org> - 3.4.3-0.1.RC1
+- update to 3.4.3RC1
+- rebuild for https://fedoraproject.org/wiki/Changes/php70
+
 * Thu Feb 25 2016 Remi Collet <remi@fedoraproject.org> - 3.1.2-5
 - drop scriptlets (replaced by file triggers in php-pear) #1310546
 
