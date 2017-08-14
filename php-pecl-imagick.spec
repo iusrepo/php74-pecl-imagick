@@ -1,110 +1,190 @@
-%global	php_apiver  %((echo 0; php -i 2>/dev/null | sed -n 's/^PHP API => //p') | tail -1)
-%{!?__pecl:		%{expand:	%%global __pecl	%{_bindir}/pecl}}
-%{!?php_extdir:	%{expand:	%%global php_extdir	%(php-config --extension-dir)}}
+%global pecl_name  imagick
+%global ini_name   40-%{pecl_name}.ini
+%global with_zts   0%{?__ztsphp:1}
 
-%global peclName  imagick
-%if "%{php_version}" < "5.6"
-%global ini_name  %{peclName}.ini
-%else
-%global ini_name  40-%{peclName}.ini
-%endif
-%global prever    RC1
+Summary:        Provides a wrapper to the ImageMagick library
+Name:           php-pecl-%pecl_name
+Version:        3.4.3
+Release:        1%{?dist}
+License:        PHP
+Group:          Development/Libraries
+URL:            http://pecl.php.net/package/%pecl_name
 
-Summary:		Provides a wrapper to the ImageMagick library
-Name:		php-pecl-%peclName
-Version:		3.4.3
-Release:		0.4.%{prever}%{?dist}
-License:		PHP
-Group:		Development/Libraries
-Source0:		http://pecl.php.net/get/%peclName-%{version}%{?prever}.tgz
-Source1:		%peclName.ini
-BuildRoot:	%{_tmppath}/%{name}-%{version}-root-%(%{__id_u} -n)
-URL:			http://pecl.php.net/package/%peclName
-BuildRequires:	php-pear >= 1.4.7
-BuildRequires: php-devel >= 5.1.3, ImageMagick-devel >= 6.2.4
-%if 0%{?fedora} < 24
-Requires(post):	%{__pecl}
-Requires(postun):	%{__pecl}
-%endif
-%if 0%{?php_zend_api:1}
-Requires:		php(zend-abi) = %{php_zend_api}
-Requires:		php(api) = %{php_core_api}
-%else
-Requires:		php-api = %{php_apiver}
-%endif
-Provides:		php-pecl(%peclName) = %{version}
+Source0:        http://pecl.php.net/get/%pecl_name-%{version}%{?prever}.tgz
+BuildRequires:  php-pear >= 1.4.7
+BuildRequires:  php-devel >= 5.1.3, ImageMagick-devel >= 6.2.4
 
-Conflicts:	php-pecl-gmagick
+Requires:       php(zend-abi) = %{php_zend_api}
+Requires:       php(api) = %{php_core_api}
+
+Provides:       php-%pecl_name               = %{version}
+Provides:       php-%pecl_name%{?_isa}       = %{version}
+Provides:       php-pecl(%pecl_name)         = %{version}
+Provides:       php-pecl(%pecl_name)%{?_isa} = %{version}
+
+Conflicts:      php-pecl-gmagick
 
 
 %description
-%peclName is a native php extension to create and modify images using the
+%pecl_name is a native php extension to create and modify images using the
 ImageMagick API.
-This extension requires ImageMagick version 6.2.4+ and PHP 5.1.3+.
 
-IMPORTANT: Version 2.x API is not compatible with earlier versions.
+
+%package devel
+Summary:       %{pecl_name} extension developer files (header)
+Group:         Development/Libraries
+Requires:      %{name}%{?_isa} = %{version}-%{release}
+Requires:      %{?scl_prefix}php-devel%{?_isa}
+
+%description devel
+These are the files needed to compile programs using %{pecl_name} extension.
+
 
 %prep
 %setup -qc
+mv %{pecl_name}-%{version}%{?prever} NTS
 
-cd %peclName-%{version}%{?prever}
+# don't install any font (and test using it)
+# don't install empty file (d41d8cd98f00b204e9800998ecf8427e)
+sed -e '/anonymous_pro_minus.ttf/d' \
+    -e '/015-imagickdrawsetresolution.phpt/d' \
+    -e '/OFL.txt/d' \
+    -e '/LICENSE/s/role="doc"/role="src"/' \
+    -i package.xml
+
+if grep '\.ttf' package.xml
+then : "Font files detected!"
+     exit 1
+fi
+
+cd NTS
+
+extver=$(sed -n '/#define PHP_IMAGICK_VERSION/{s/.* "//;s/".*$//;p}' php_imagick.h)
+if test "x${extver}" != "x%{version}%{?prever}"; then
+   : Error: Upstream version is ${extver}, expecting %{version}%{?prever}.
+   exit 1
+fi
+cd ..
+
+cat > %{ini_name} << 'EOF'
+; Enable %{pecl_name} extension module
+extension = %{pecl_name}.so
+
+; Documentation: http://php.net/imagick
+
+; Don't check builtime and runtime versions of ImageMagick
+imagick.skip_version_check=1
+
+; Fixes a drawing bug with locales that use ',' as float separators.
+;imagick.locale_fix=0
+
+; Used to enable the image progress monitor.
+;imagick.progress_monitor=0
+EOF
+
+%if %{with_zts}
+cp -r NTS ZTS
+%endif
 
 
 %build
-cd %peclName-%{version}%{?prever}
-phpize
-%{configure} --with-%peclName
-%{__make}
+: Standard NTS build
+cd NTS
+%{_bindir}/phpize
+%configure --with-imagick=%{prefix} --with-php-config=%{_bindir}/php-config
+make %{?_smp_mflags}
+
+%if %{with_zts}
+cd ../ZTS
+: ZTS build
+%{_bindir}/zts-phpize
+%configure --with-imagick=%{prefix} --with-php-config=%{_bindir}/zts-php-config
+make %{?_smp_mflags}
+%endif
+
 
 %install
-rm -rf %{buildroot}
+make install INSTALL_ROOT=%{buildroot} -C NTS
 
-cd %peclName-%{version}%{?prever}
-
-%{__make} install \
-	INSTALL_ROOT=%{buildroot}
+# Drop in the bit of configuration
+install -D -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
 
 # Install XML package description
-install -m 0755 -d %{buildroot}%{pecl_xmldir}
-install -m 0664 ../package.xml %{buildroot}%{pecl_xmldir}/%peclName.xml
-install -d %{buildroot}%{_sysconfdir}/php.d/
-install -m 0664 %{SOURCE1} %{buildroot}%{_sysconfdir}/php.d/%{ini_name}
+install -D -p -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
 
-rm -rf %{buildroot}/%{_includedir}/php/ext/%peclName/
+%if %{with_zts}
+make install INSTALL_ROOT=%{buildroot} -C ZTS
+install -D -m 644 %{ini_name} %{buildroot}%{php_ztsinidir}/%{ini_name}
+%endif
+
+# Test & Documentation
+cd NTS
+for i in $(grep 'role="test"' ../package.xml | sed -e 's/^.*name="//;s/".*$//')
+do [ -f $i ]          && install -Dpm 644 $i          %{buildroot}%{pecl_testdir}/%{pecl_name}/$i
+done
+for i in $(grep 'role="doc"' ../package.xml | sed -e 's/^.*name="//;s/".*$//')
+do [ -f $i ]          &&  install -Dpm 644 $i          %{buildroot}%{pecl_docdir}/%{pecl_name}/$i
+done
+
 
 %check
-# simple module load test
-pushd %peclName-%{version}%{?prever}
-php --no-php-ini \
+export REPORT_EXIT_STATUS=1
+
+: simple module load test for NTS extension
+cd NTS
+%{__php} --no-php-ini \
     --define extension_dir=%{buildroot}%{php_extdir} \
-    --define extension=%peclName.so \
-    --modules | grep %peclName
+    --define extension=%{pecl_name}.so \
+    --modules | grep %{pecl_name}
 
-%clean
-rm -rf %{buildroot}
+# Ignore know failed test on some ach (s390x, armv7hl, aarch64) with timeout
+rm tests/229_Tutorial_fxAnalyzeImage_case1.phpt
 
-%if 0%{?fedora} < 24
-%post
-%if 0%{?pecl_install:1}
-%{pecl_install} %{pecl_xmldir}/%peclName.xml
+: upstream test suite for NTS extension
+TEST_PHP_EXECUTABLE=%{__php} \
+TEST_PHP_ARGS="-n -d extension=%{buildroot}%{php_extdir}/%{pecl_name}.so" \
+NO_INTERACTION=1 \
+%{__php} -n run-tests.php --show-diff
+
+%if %{with_zts}
+: simple module load test for ZTS extension
+cd ../ZTS
+%{__ztsphp} --no-php-ini \
+    --define extension_dir=%{buildroot}%{php_ztsextdir} \
+    --define extension=%{pecl_name}.so \
+    --modules | grep %{pecl_name}
 %endif
 
-%postun
-%if 0%{?pecl_uninstall:1}
-if [ "$1" -eq "0" ]; then
-	%{pecl_uninstall} %peclName
-fi
-%endif
-%endif
 
 %files
-%defattr(-,root,root,-)
-%doc %peclName-%{version}%{?prever}/examples %peclName-%{version}%{?prever}/CREDITS
-%{php_extdir}/%peclName.so
-%{pecl_xmldir}/%peclName.xml
-%config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/php.d/%{ini_name}
+%doc %{pecl_docdir}/%{pecl_name}
+%{pecl_xmldir}/%{name}.xml
+
+%config(noreplace) %{php_inidir}/%{ini_name}
+%{php_extdir}/%{pecl_name}.so
+
+%if %{with_zts}
+%config(noreplace) %{php_ztsinidir}/%{ini_name}
+%{php_ztsextdir}/%{pecl_name}.so
+%endif
+
+
+%files devel
+%doc %{pecl_testdir}/%{pecl_name}
+%{php_incldir}/ext/%{pecl_name}
+
+%if %{with_zts}
+%{php_ztsincldir}/ext/%{pecl_name}
+%endif
+
 
 %changelog
+* Mon Aug 14 2017 Remi Collet <remi@remirepo.net> - 3.4.3-1
+- update to 3.4.3
+- add devel subpackage
+- add ZTS extension
+- big spec file cleanup and fix FTBFS from Koschei
+
 * Thu Jul 27 2017 Fedora Release Engineering <releng@fedoraproject.org> - 3.4.3-0.4.RC1
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_27_Mass_Rebuild
 
