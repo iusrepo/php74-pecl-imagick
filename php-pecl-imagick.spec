@@ -5,14 +5,15 @@
 Summary:        Provides a wrapper to the ImageMagick library
 Name:           php-pecl-%pecl_name
 Version:        3.4.3
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        PHP
 Group:          Development/Libraries
 URL:            http://pecl.php.net/package/%pecl_name
 
 Source0:        http://pecl.php.net/get/%pecl_name-%{version}%{?prever}.tgz
 BuildRequires:  php-pear >= 1.4.7
-BuildRequires:  php-devel >= 5.1.3, ImageMagick-devel >= 6.2.4
+BuildRequires:  php-devel >= 5.1.3
+BuildRequires:  ImageMagick-devel >= 6.2.4
 
 Requires:       php(zend-abi) = %{php_zend_api}
 Requires:       php(api) = %{php_core_api}
@@ -179,6 +180,9 @@ cd ../ZTS
 
 
 %changelog
+* Thu Aug 24 2017 Remi Collet <remi@remirepo.net> - 3.4.3-2
+- rebuild for new ImageMagick
+
 * Mon Aug 14 2017 Remi Collet <remi@remirepo.net> - 3.4.3-1
 - update to 3.4.3
 - add devel subpackage
