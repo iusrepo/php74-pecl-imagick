@@ -5,7 +5,7 @@
 Summary:        Provides a wrapper to the ImageMagick library
 Name:           php-pecl-%pecl_name
 Version:        3.4.3
-Release:        2%{?dist}
+Release:        3%{?dist}
 License:        PHP
 Group:          Development/Libraries
 URL:            http://pecl.php.net/package/%pecl_name
@@ -180,6 +180,9 @@ cd ../ZTS
 
 
 %changelog
+* Tue Sep 05 2017 Adam Williamson <awilliam@redhat.com> - 3.4.3-3
+- Rebuild for ImageMagick 6 reversion
+
 * Thu Aug 24 2017 Remi Collet <remi@remirepo.net> - 3.4.3-2
 - rebuild for new ImageMagick
 
