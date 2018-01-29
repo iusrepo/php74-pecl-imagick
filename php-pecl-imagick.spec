@@ -1,3 +1,6 @@
+# we don't want -z defs linker flag
+%undefine _strict_symbol_defs_build
+
 %global pecl_name  imagick
 %global ini_name   40-%{pecl_name}.ini
 %global with_zts   0%{?__ztsphp:1}
@@ -5,12 +8,14 @@
 Summary:        Provides a wrapper to the ImageMagick library
 Name:           php-pecl-%pecl_name
 Version:        3.4.3
-Release:        4%{?dist}
+Release:        5%{?dist}
 License:        PHP
 Group:          Development/Libraries
 URL:            http://pecl.php.net/package/%pecl_name
 
 Source0:        http://pecl.php.net/get/%pecl_name-%{version}%{?prever}.tgz
+Patch0:         https://patch-diff.githubusercontent.com/raw/mkoppanen/imagick/pull/221.patch
+
 BuildRequires:  php-pear >= 1.4.7
 BuildRequires:  php-devel >= 5.1.3
 BuildRequires:  ImageMagick-devel >= 6.2.4
@@ -59,6 +64,7 @@ then : "Font files detected!"
 fi
 
 cd NTS
+%patch0 -p1
 
 extver=$(sed -n '/#define PHP_IMAGICK_VERSION/{s/.* "//;s/".*$//;p}' php_imagick.h)
 if test "x${extver}" != "x%{version}%{?prever}"; then
@@ -180,6 +186,10 @@ cd ../ZTS
 
 
 %changelog
+* Mon Jan 29 2018 Remi Collet <remi@remirepo.net> - 3.4.3-5
+- undefine _strict_symbol_defs_build
+- use patch from https://github.com/mkoppanen/imagick/pull/221
+
 * Tue Oct 03 2017 Remi Collet <remi@fedoraproject.org> - 3.4.3-4
 - rebuild for https://fedoraproject.org/wiki/Changes/php72
 
