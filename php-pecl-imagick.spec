@@ -8,7 +8,7 @@
 Summary:        Provides a wrapper to the ImageMagick library
 Name:           php-pecl-%pecl_name
 Version:        3.4.3
-Release:        6%{?dist}
+Release:        7%{?dist}
 License:        PHP
 Group:          Development/Libraries
 URL:            http://pecl.php.net/package/%pecl_name
@@ -186,6 +186,9 @@ cd ../ZTS
 
 
 %changelog
+* Fri Feb 09 2018 Igor Gnatenko <ignatenkobrain@fedoraproject.org> - 3.4.3-7
+- Escape macros in %%changelog
+
 * Fri Feb 09 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3.4.3-6
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_28_Mass_Rebuild
 
@@ -314,8 +317,8 @@ cd ../ZTS
 - All modifications in this release inspired by Fedora review by Remi Collet.
 - Add versions to BR for php-devel and ImageMagick-devel
 - Remove -n option from %%setup which was excessive with -c
-- Module install/uninstall actions surround with %%if 0%{?pecl_(un)?install:1} ... %%endif
-- Add Provides: php-pecl(%peclName) = %{version}
+- Module install/uninstall actions surround with %%if 0%%{?pecl_(un)?install:1} ... %%endif
+- Add Provides: php-pecl(%%peclName) = %%{version}
 
 * Sat Jan 3 2009 Pavel Alexeev <Pahan [ at ] Hubbitus [ DOT ] spb [ dOt.] su> - 2.2.1-2
 - License changed to PHP (thanks to Remi Collet)
