@@ -8,7 +8,7 @@
 Summary:        Provides a wrapper to the ImageMagick library
 Name:           php-pecl-%pecl_name
 Version:        3.4.3
-Release:        8%{?dist}
+Release:        9%{?dist}
 License:        PHP
 Group:          Development/Libraries
 URL:            http://pecl.php.net/package/%pecl_name
@@ -186,6 +186,9 @@ cd ../ZTS
 
 
 %changelog
+* Tue Aug 28 2018 Michael Cronenworth <mike@cchtml.com> - 3.4.3-9
+- Rebuild for ImageMagick 6.9.10
+
 * Fri Jul 13 2018 Fedora Release Engineering <releng@fedoraproject.org> - 3.4.3-8
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_29_Mass_Rebuild
 
