@@ -10,7 +10,6 @@ Name:           php-pecl-%pecl_name
 Version:        3.4.3
 Release:        10%{?dist}
 License:        PHP
-Group:          Development/Libraries
 URL:            http://pecl.php.net/package/%pecl_name
 
 Source0:        http://pecl.php.net/get/%pecl_name-%{version}%{?prever}.tgz
@@ -38,7 +37,6 @@ ImageMagick API.
 
 %package devel
 Summary:       %{pecl_name} extension developer files (header)
-Group:         Development/Libraries
 Requires:      %{name}%{?_isa} = %{version}-%{release}
 Requires:      %{?scl_prefix}php-devel%{?_isa}
 
