@@ -13,7 +13,6 @@ License:        PHP
 URL:            http://pecl.php.net/package/%pecl_name
 
 Source0:        http://pecl.php.net/get/%pecl_name-%{version}%{?prever}.tgz
-Patch0:         https://patch-diff.githubusercontent.com/raw/mkoppanen/imagick/pull/221.patch
 
 BuildRequires:  php-pear >= 1.4.7
 BuildRequires:  php-devel >= 5.1.3
@@ -62,8 +61,6 @@ then : "Font files detected!"
 fi
 
 cd NTS
-%patch0 -p1
-
 extver=$(sed -n '/#define PHP_IMAGICK_VERSION/{s/.* "//;s/".*$//;p}' php_imagick.h)
 if test "x${extver}" != "x%{version}%{?prever}"; then
    : Error: Upstream version is ${extver}, expecting %{version}%{?prever}.
@@ -186,6 +183,7 @@ cd ../ZTS
 %changelog
 * Tue May  7 2019 Remi Collet <remi@remirepo.net> - 3.4.4-1
 - update to 3.4.4
+- drop patch merged upstream
 
 * Sat Feb 02 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.4.3-11
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_30_Mass_Rebuild
