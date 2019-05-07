@@ -184,7 +184,7 @@ cd ../ZTS
 
 
 %changelog
-* Tue May  7 2018 Remi Collet <remi@remirepo.net> - 3.4.4-1
+* Tue May  7 2019 Remi Collet <remi@remirepo.net> - 3.4.4-1
 - update to 3.4.4
 
 * Sat Feb 02 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.4.3-11
