@@ -8,11 +8,15 @@
 Summary:        Provides a wrapper to the ImageMagick library
 Name:           php-pecl-%pecl_name
 Version:        3.4.4
-Release:        2%{?dist}
+Release:        3%{?dist}
 License:        PHP
 URL:            http://pecl.php.net/package/%pecl_name
 
 Source0:        http://pecl.php.net/get/%pecl_name-%{version}%{?prever}.tgz
+
+Patch0:         https://patch-diff.githubusercontent.com/raw/Imagick/imagick/pull/290.patch
+Patch1:         https://patch-diff.githubusercontent.com/raw/Imagick/imagick/pull/291.patch
+Patch2:         https://patch-diff.githubusercontent.com/raw/Imagick/imagick/pull/296.patch
 
 BuildRequires:  php-pear >= 1.4.7
 BuildRequires:  php-devel >= 5.1.3
@@ -61,6 +65,12 @@ then : "Font files detected!"
 fi
 
 cd NTS
+%patch0 -p1
+%patch1 -p1
+%if "%{php_version}" > "7.4"
+%patch2 -p1
+%endif
+
 extver=$(sed -n '/#define PHP_IMAGICK_VERSION/{s/.* "//;s/".*$//;p}' php_imagick.h)
 if test "x${extver}" != "x%{version}%{?prever}"; then
    : Error: Upstream version is ${extver}, expecting %{version}%{?prever}.
@@ -181,6 +191,9 @@ cd ../ZTS
 
 
 %changelog
+* Thu Oct 03 2019 Remi Collet <remi@remirepo.net> - 3.4.4-3
+- rebuild for https://fedoraproject.org/wiki/Changes/php74
+
 * Fri Jul 26 2019 Fedora Release Engineering <releng@fedoraproject.org> - 3.4.4-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_31_Mass_Rebuild
 

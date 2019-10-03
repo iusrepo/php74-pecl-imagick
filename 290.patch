@@ -1,0 +1,48 @@
+From bf970c67269f02609d4581c5489606ddd1a10992 Mon Sep 17 00:00:00 2001
+From: Peter Kokot <peterkokot@gmail.com>
+Date: Mon, 24 Jun 2019 21:02:31 +0200
+Subject: [PATCH] Remove HAVE_LOCALE_H symbol
+
+The locale.h header is part of the C89 standard and is present on
+all today's systems already. The HAVE_LOCALE_H symbol is defined
+by PHP's build system and relying on it is neither a good practice
+neither needed anymore since the locale.h check would always define
+it.
+
+http://port70.net/~nsz/c/c89/c89-draft.html#4.1.2
+---
+ php_imagick_defs.h | 14 +++++---------
+ 1 file changed, 5 insertions(+), 9 deletions(-)
+
+diff --git a/php_imagick_defs.h b/php_imagick_defs.h
+index 5eb57e5..92dc851 100644
+--- a/php_imagick_defs.h
++++ b/php_imagick_defs.h
+@@ -43,9 +43,7 @@
+ #include "Zend/zend.h"
+ 
+ /* Include locale header */
+-#ifdef HAVE_LOCALE_H
+-# include <locale.h>
+-#endif
++#include <locale.h>
+ 
+ #if MagickLibVersion >= 0x680
+ 	#define IMAGICK_WITH_KERNEL
+@@ -97,12 +95,10 @@ ZEND_END_MODULE_GLOBALS(imagick)
+ 
+ ZEND_EXTERN_MODULE_GLOBALS(imagick)
+ 
+-#ifdef HAVE_LOCALE_H
+-# if defined(PHP_WIN32)
+-#  define IMAGICK_LC_NUMERIC_LOCALE "English"
+-# else
+-#  define IMAGICK_LC_NUMERIC_LOCALE "C"
+-# endif
++#if defined(PHP_WIN32)
++# define IMAGICK_LC_NUMERIC_LOCALE "English"
++#else
++# define IMAGICK_LC_NUMERIC_LOCALE "C"
+ #endif
+ 
+ #if PHP_MAJOR_VERSION == 5 && PHP_MINOR_VERSION < 3

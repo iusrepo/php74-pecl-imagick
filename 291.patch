@@ -1,0 +1,48 @@
+From 1c4c0fd5796249de19179afa77e87f315511973e Mon Sep 17 00:00:00 2001
+From: Peter Kokot <peterkokot@gmail.com>
+Date: Thu, 27 Jun 2019 00:20:10 +0200
+Subject: [PATCH] Remove HAVE_SPL
+
+The HAVE_SPL symbol is defined in PHP to indicate the presence of the
+spl extension. Since PHP 5.3 the SPL extension is always availabe and
+since PHP-7.4 the HAVE_SPL symbol has also been removed.
+---
+ imagick.c | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/imagick.c b/imagick.c
+index 8e58afe..1b97026 100644
+--- a/imagick.c
++++ b/imagick.c
+@@ -33,9 +33,7 @@
+ 
+ 
+ /* For the countable interface */
+-#if defined(HAVE_SPL)
+ #include "ext/spl/spl_iterators.h"
+-#endif
+ 
+ ZEND_DECLARE_MODULE_GLOBALS(imagick)
+ 
+@@ -3675,11 +3673,7 @@ PHP_MINIT_FUNCTION(imagick)
+ #endif
+ 
+ 	php_imagick_sc_entry = zend_register_internal_class(&ce TSRMLS_CC);
+-#if defined(HAVE_SPL)
+ 	zend_class_implements(php_imagick_sc_entry TSRMLS_CC, 2, zend_ce_iterator, spl_ce_Countable);
+-#else
+-	zend_class_implements(php_imagick_sc_entry TSRMLS_CC, 1, zend_ce_iterator);
+-#endif
+ 
+ 	/*
+ 		Initialize the class (ImagickDraw)
+@@ -3874,9 +3868,7 @@ PHP_RSHUTDOWN_FUNCTION(imagick)
+ static const zend_module_dep imagick_deps[] = {
+     ZEND_MOD_CONFLICTS("gmagick")
+     ZEND_MOD_REQUIRED("standard")
+-#ifdef HAVE_SPL
+ 	ZEND_MOD_REQUIRED("spl")
+-#endif
+ 	ZEND_MOD_END
+ };
+ #endif
