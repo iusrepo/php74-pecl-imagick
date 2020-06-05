@@ -4,44 +4,58 @@
 %global pecl_name  imagick
 %global ini_name   40-%{pecl_name}.ini
 %global with_zts   0%{?__ztsphp:1}
+%global php        php74
 
 Summary:        Provides a wrapper to the ImageMagick library
-Name:           php-pecl-%pecl_name
+Name:           %{php}-pecl-%{pecl_name}
 Version:        3.4.4
 Release:        4%{?dist}
 License:        PHP
-URL:            http://pecl.php.net/package/%pecl_name
+URL:            https://pecl.php.net/package/%{pecl_name}
 
-Source0:        http://pecl.php.net/get/%pecl_name-%{version}%{?prever}.tgz
+Source0:        https://pecl.php.net/get/%{pecl_name}-%{version}%{?prever}.tgz
 
 Patch0:         https://patch-diff.githubusercontent.com/raw/Imagick/imagick/pull/290.patch
 Patch1:         https://patch-diff.githubusercontent.com/raw/Imagick/imagick/pull/291.patch
 Patch2:         https://patch-diff.githubusercontent.com/raw/Imagick/imagick/pull/296.patch
 
-BuildRequires:  php-pear >= 1.4.7
-BuildRequires:  php-devel >= 5.1.3
-BuildRequires:  ImageMagick-devel >= 6.2.4
+BuildRequires:  %{php}-devel
+# build require pear1's dependencies to avoid mismatched php stacks
+BuildRequires:  pear1 %{php}-cli %{php}-common %{php}-xml
+# https://github.com/Imagick/imagick/blob/3.4.2/ChangeLog#L83
+BuildRequires:  ImageMagick-devel >= 6.5.3.10
 
 Requires:       php(zend-abi) = %{php_zend_api}
 Requires:       php(api) = %{php_core_api}
 
-Provides:       php-%pecl_name               = %{version}
-Provides:       php-%pecl_name%{?_isa}       = %{version}
-Provides:       php-pecl(%pecl_name)         = %{version}
-Provides:       php-pecl(%pecl_name)%{?_isa} = %{version}
+Provides:       php-%{pecl_name}               = %{version}
+Provides:       php-%{pecl_name}%{?_isa}       = %{version}
+Provides:       php-pecl(%{pecl_name})         = %{version}
+Provides:       php-pecl(%{pecl_name})%{?_isa} = %{version}
 
 Conflicts:      php-pecl-gmagick
 
+# safe replacement
+Provides:       php-pecl-%{pecl_name} = %{version}-%{release}
+Provides:       php-pecl-%{pecl_name}%{?_isa} = %{version}-%{release}
+Conflicts:      php-pecl-%{pecl_name} < %{version}-%{release}
+
 
 %description
-%pecl_name is a native php extension to create and modify images using the
+%{pecl_name} is a native php extension to create and modify images using the
 ImageMagick API.
 
 
 %package devel
 Summary:       %{pecl_name} extension developer files (header)
 Requires:      %{name}%{?_isa} = %{version}-%{release}
-Requires:      %{?scl_prefix}php-devel%{?_isa}
+Requires:      %{php}-devel%{?_isa}
+
+# safe replacement
+Provides:       php-pecl-%{pecl_name}-devel = %{version}-%{release}
+Provides:       php-pecl-%{pecl_name}-devel%{?_isa} = %{version}-%{release}
+Conflicts:      php-pecl-%{pecl_name}-devel < %{version}-%{release}
+
 
 %description devel
 These are the files needed to compile programs using %{pecl_name} extension.
@@ -104,14 +118,14 @@ cp -r NTS ZTS
 cd NTS
 %{_bindir}/phpize
 %configure --with-imagick=%{prefix} --with-php-config=%{_bindir}/php-config
-make %{?_smp_mflags}
+%make_build
 
 %if %{with_zts}
 cd ../ZTS
 : ZTS build
 %{_bindir}/zts-phpize
 %configure --with-imagick=%{prefix} --with-php-config=%{_bindir}/zts-php-config
-make %{?_smp_mflags}
+%make_build
 %endif
 
 
@@ -122,7 +136,7 @@ make install INSTALL_ROOT=%{buildroot} -C NTS
 install -D -m 644 %{ini_name} %{buildroot}%{php_inidir}/%{ini_name}
 
 # Install XML package description
-install -D -p -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{name}.xml
+install -D -p -m 644 package.xml %{buildroot}%{pecl_xmldir}/%{pecl_name}.xml
 
 %if %{with_zts}
 make install INSTALL_ROOT=%{buildroot} -C ZTS
@@ -168,9 +182,27 @@ cd ../ZTS
 %endif
 
 
+%triggerin -- pear1
+if [ -x %{__pecl} ]; then
+    %{pecl_install} %{pecl_xmldir}/%{pecl_name}.xml >/dev/null || :
+fi
+
+
+%posttrans
+if [ -x %{__pecl} ]; then
+    %{pecl_install} %{pecl_xmldir}/%{pecl_name}.xml >/dev/null || :
+fi
+
+
+%postun
+if [ $1 -eq 0 -a -x %{__pecl} ]; then
+    %{pecl_uninstall} %{pecl_name} >/dev/null || :
+fi
+
+
 %files
 %doc %{pecl_docdir}/%{pecl_name}
-%{pecl_xmldir}/%{name}.xml
+%{pecl_xmldir}/%{pecl_name}.xml
 
 %config(noreplace) %{php_inidir}/%{ini_name}
 %{php_extdir}/%{pecl_name}.so
@@ -191,6 +223,9 @@ cd ../ZTS
 
 
 %changelog
+* Fri Jun 05 2020 David Alger <davidmalger@gmail.com> - 3.4.4-4
+- Port from Fedora to IUS
+
 * Thu Jan 30 2020 Fedora Release Engineering <releng@fedoraproject.org> - 3.4.4-4
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_32_Mass_Rebuild
 
